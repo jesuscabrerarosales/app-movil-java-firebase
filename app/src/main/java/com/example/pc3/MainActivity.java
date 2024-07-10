@@ -1,12 +1,12 @@
 package com.example.pc3;
-
-import static com.example.pc3.R.id.eValor;
 import static com.example.pc3.R.id.listView;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -17,8 +17,8 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -54,12 +54,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bhora.setOnClickListener(this);
 
         list_datos=findViewById(listView);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main,menu);
         return super.onCreateOptionsMenu(menu);
+    }*/
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
     }
 
     @Override
@@ -96,24 +107,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        String valor= R.id
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.icon_add) {
+            Toast.makeText(this,"Agregar",Toast.LENGTH_LONG).show();
+            return true;
+        }
 
+        else if (id == R.drawable.ic_save) {
+            Toast.makeText(this,"Guardar",Toast.LENGTH_LONG).show();
+        }
+
+        else if (id == R.drawable.ic_delete) {
+            Toast.makeText(this,"Eliminar",Toast.LENGTH_LONG).show();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /*@Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        //String valor= R.id;
         switch(item.getItemId()){
-            case R.id.icon_add:{
-                Toast.makeText(this,"Agregar",Toast.LENGTH_LONG).show();
+            case R.id.icon_add :
+
                 break;
-            }
-            case R.id.icon_save:{
+            case R.drawable.ic_save:
                 Toast.makeText(this,"Guardar",Toast.LENGTH_LONG).show();
                 break;
-            }
-            case R.id.icon_delete:{
+
+            case R.drawable.ic_delete:
                 Toast.makeText(this,"Eliminar",Toast.LENGTH_LONG).show();
                 break;
-            }
-            default:break;
+
+            default:
+                break;
         }
         return true;
-    }
+    }*/
 }
