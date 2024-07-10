@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "20294875390",
+    "project_id": "app-pc3-b2fb6",
+    "storage_bucket": "app-pc3-b2fb6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:20294875390:android:a747032e3f317e03a80daf",
+        "android_client_info": {
+          "package_name": "com.example.pc3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-O3SzK24s5FdcTVINSjHER5TvOhaJAQQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
