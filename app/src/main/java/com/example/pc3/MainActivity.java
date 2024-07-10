@@ -9,6 +9,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -17,22 +19,41 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.pc3.model.Data;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.UUID;
+
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     Button bfecha,bhora;
-    EditText efecha,ehora;
+    EditText efecha,ehora,evalor;
 
     private int dia,mes,anio,hora,minutos;
 
     ListView list_datos;
 
+    FirebaseDatabase firebaseDatabase;
+    DatabaseReference databaseReference;
+
+    private List<Data>listaData=new ArrayList<Data>();
+    ArrayAdapter<Data>arrayAdapterData;
+    Data dataSeleccionada;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         efecha=(EditText) findViewById(R.id.eFecha);
         ehora=(EditText) findViewById(R.id.eHora);
+        evalor=(EditText)findViewById(R.id.eValor);
 
         bfecha.setOnClickListener(this);
         bhora.setOnClickListener(this);
@@ -58,13 +80,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        inicializarFireBase();
+
+        listaDatos();
+        list_datos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                dataSeleccionada=(Data) parent.getItemAtPosition(position);
+
+                String fechaHora = dataSeleccionada.getFechaHora();
+                String[] parts = fechaHora.split(" ");
+                String afecha = parts[0];
+                String hora = parts[1];
+                efecha.setText(afecha);
+                ehora.setText(hora);
+                evalor.setText(dataSeleccionada.getValor());
+            }
+        });
     }
 
-    /*@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main,menu);
-        return super.onCreateOptionsMenu(menu);
-    }*/
+
+
+    private void inicializarFireBase() {
+        FirebaseApp.initializeApp(this);
+        firebaseDatabase=FirebaseDatabase.getInstance();
+        databaseReference=firebaseDatabase.getReference();
+    }
+
+    private void listaDatos() {
+        databaseReference.child("Data").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                listaData.clear();
+                for (DataSnapshot objSnaptshot : snapshot.getChildren()){
+                    Data d=objSnaptshot.getValue(Data.class);
+                    listaData.add(d);
+
+                    arrayAdapterData=new ArrayAdapter<Data>(MainActivity.this, android.R.layout.simple_list_item_1,listaData);
+                    list_datos.setAdapter(arrayAdapterData);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -108,40 +170,65 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.icon_add) {
-            Toast.makeText(this,"Agregar",Toast.LENGTH_LONG).show();
-            return true;
-        }
+        String fecha=efecha.getText().toString();
+        String hora=ehora.getText().toString();
+        String valor=evalor.getText().toString();
 
-        else if (id == R.drawable.ic_save) {
-            Toast.makeText(this,"Guardar",Toast.LENGTH_LONG).show();
-        }
+        switch (item.getItemId()){
+            case R.id.icon_add:
+                if(fecha.equals("")||hora.equals("")||valor.equals("")){
+                    validacion();
+                }else {
+                    String fechaHora = fecha + " " + hora;
+                    Data d=new Data();
+                    d.setIdsensor(UUID.randomUUID().toString());
+                    d.setFechaHora(fechaHora);
+                    d.setValor(valor);
+                    databaseReference.child("Data").child(d.getIdsensor()).setValue(d);
 
-        else if (id == R.drawable.ic_delete) {
-            Toast.makeText(this,"Eliminar",Toast.LENGTH_LONG).show();
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    /*@Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        //String valor= R.id;
-        switch(item.getItemId()){
-            case R.id.icon_add :
-
+                    Toast.makeText(this,"Agregar", Toast.LENGTH_LONG).show();
+                    limpiarCajas();
+                }
                 break;
-            case R.drawable.ic_save:
-                Toast.makeText(this,"Guardar",Toast.LENGTH_LONG).show();
+            case R.id.icon_save:
+                Data d=new Data();
+                d.setIdsensor(dataSeleccionada.getIdsensor());
+                String fechaHora = fecha + " " + hora;
+                d.setFechaHora(fechaHora);
+                d.setValor(evalor.getText().toString());
+                databaseReference.child("Data").child(d.getIdsensor()).setValue(d);
+                Toast.makeText(this,"Guardar", Toast.LENGTH_LONG).show();
+                limpiarCajas();
+                break;
+            case R.id.icon_delete:
+                Data de=new Data();
+                de.setIdsensor(dataSeleccionada.getIdsensor());
+                databaseReference.child("Data").child(de.getIdsensor()).removeValue();
+                Toast.makeText(this,"Eliminar", Toast.LENGTH_LONG).show();
+                limpiarCajas();
                 break;
 
-            case R.drawable.ic_delete:
-                Toast.makeText(this,"Eliminar",Toast.LENGTH_LONG).show();
-                break;
-
-            default:
-                break;
+            default:break;
         }
         return true;
-    }*/
+    }
+
+    private void limpiarCajas() {
+        efecha.setText("");
+        ehora.setText("");
+        evalor.setText("");
+    }
+
+    private void validacion() {
+        String fecha=efecha.getText().toString();
+        String hora=ehora.getText().toString();
+        String valor=evalor.getText().toString();
+        if(fecha.equals("")){
+            efecha.setError("Requerido");
+        }else if(hora.equals("")){
+            ehora.setError("Requerido");
+        }else if(valor.equals("")){
+            evalor.setError("Requerido");
+        }
+    }
 }
